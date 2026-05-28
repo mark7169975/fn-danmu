@@ -1,0 +1,16 @@
+services:
+  danmaku-proxy:
+    build: .
+    ports:
+      - "3000:3000"    # HTTP
+      - "3443:3443"    # HTTPS
+    environment:
+      #  改成 https:// 或 http:// 都行，自动适配
+      - FN_URL=https://192.168.10.158:5667
+      - DM_URL=http://192.168.10.158:9321
+      - PORT=3000
+      - HTTPS_PORT=3443
+    volumes:
+      - ./certs:/app/certs   # 持久化证书（可选，不挂载会自动生成）
+    restart: unless-stopped
+    init: true
