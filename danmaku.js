@@ -126,11 +126,20 @@
 
     /** 获取当前视频的元信息（标题、季、集） */
     async function getInfo() {
+        const { execSync } = require('child_process');
+        const url = `${FNIU}/v/api/v1/play/info`;
+       
         const g = getGuid();
         if (!g) return null;
         console.log('[获取视频信息] GUID:', g);
-        const r = await gmFetch(`${FNIU}/v/api/v1/play/info`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+         // 1) 用 Python 生成 authx（body 走 stdin，无引号转义问题）
+        const authx = execSync(`python gen_authx.py POST "${url}"`, {
+            input: JSON.stringify({ item_guid: g }),
+            encoding: 'utf-8'
+        }).trim();
+        console.log('[获取authx] :', authx);
+        const r = await gmFetch(url, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'authx': authx },
             data: JSON.stringify({ item_guid: g })
         });
         if (r.code !== 0 || !r.data?.item) {
